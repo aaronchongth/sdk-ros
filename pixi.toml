@@ -1,0 +1,81 @@
+[workspace]
+name = "sdk-ros"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+requires-pixi = ">=0.81"
+
+[dependencies]
+# Toolchain
+c-compiler = "*"
+cxx-compiler = "*"
+cmake = "*"
+ninja = "*"
+make = "*"
+pkg-config = "*"
+git = "*"
+colcon-common-extensions = "*"
+# --clean-env strips PATH to the pixi env only, so bash/env/grep must be provided.
+bash = "*"
+coreutils = "*"
+grep = "*"
+# Libraries the *_vendor packages look for with find_package; when present the vendor build is skipped.
+libabseil = "*"
+libgrpc = "*"
+libprotobuf = "*"
+re2 = "*"
+eigen = "*"
+flatbuffers = "*"
+prometheus-cpp = "*"
+pybind11 = "*"
+nlohmann_json = "*"
+zeromq = "*"
+cppzmq = "*"
+libcurl = "*"
+libxml2 = "*"
+zlib = "*"
+bzip2 = "*"
+# Python deps of the SDK (README "Using the SDK in Python")
+grpcio = "*"
+protobuf = "*"
+retrying = "*"
+pyyaml = "*"
+absl-py = "*"
+pytest = "*"
+
+[feature.jazzy]
+channels = [{ channel = "https://prefix.dev/robostack-jazzy", priority = 1 }]
+[feature.jazzy.dependencies]
+ros-jazzy-ros-base = "*"
+ros-jazzy-ament-cmake-vendor-package = "*"
+ros-jazzy-rmw-zenoh-cpp = "*"
+ros-jazzy-common-interfaces = "*"
+ros-jazzy-vision-msgs = "*"
+ros-jazzy-tf2-ros = "*"
+ros-jazzy-ros-gz-interfaces = "*"
+ros-jazzy-example-interfaces = "*"
+
+[feature.lyrical]
+channels = [{ channel = "https://prefix.dev/robostack-lyrical", priority = 1 }]
+[feature.lyrical.dependencies]
+ros-lyrical-ros-base = "*"
+ros-lyrical-ament-cmake-vendor-package = "*"
+ros-lyrical-rmw-zenoh-cpp = "*"
+ros-lyrical-common-interfaces = "*"
+ros-lyrical-vision-msgs = "*"
+ros-lyrical-tf2-ros = "*"
+ros-lyrical-ros-gz-interfaces = "*"
+ros-lyrical-example-interfaces = "*"
+ros-lyrical-resource-retriever-interfaces = "*"
+
+[environments]
+jazzy = ["jazzy"]
+lyrical = ["lyrical"]
+
+[activation.env]
+# Set the generator via env rather than --cmake-args: a second --cmake-args on the command line replaces the first.
+CMAKE_GENERATOR = "Ninja"
+
+[tasks]
+# conda envs contain share/*/package.xml; stop colcon from discovering them.
+colcon-ignore = "mkdir -p .pixi && touch .pixi/COLCON_IGNORE"
+check-isolation = { cmd = "bash -c 'env | grep -E \"^(AMENT_PREFIX_PATH|CMAKE_PREFIX_PATH|LD_LIBRARY_PATH)=\" | grep /opt/ros && { echo LEAK; exit 1; } || echo isolated'", clean-env = true }
