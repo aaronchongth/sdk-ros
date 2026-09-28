@@ -1,0 +1,86 @@
+From 20d62695721805bd2364bb892bfb7200610ba27e Mon Sep 17 00:00:00 2001
+From: Aaron Chong <aaronchongth@gmail.com>
+Date: Mon, 28 Sep 2026 23:34:16 +0800
+Subject: [PATCH] Use StringViewArg in DescriptorDatabase overrides
+
+DescriptorDatabase's three virtual methods take StringViewArg, an
+alias that resolves to absl::string_view or const std::string&
+depending on the protobuf build. Overriding with a hardcoded
+const std::string& fails to override when StringViewArg is
+absl::string_view (protobuf >= 26 built with
+ABSL_USES_STD_STRING_VIEW), leaving DescriptorPoolDatabase abstract.
+
+Use the inherited protected StringViewArg alias in the override
+signatures and wrap it in std::string(...) at the few call sites
+that need an owned std::string (pybind11 attr() calls, ostream
+concatenation), which works for either underlying type.
+---
+ pybind11_protobuf/proto_cast_util.cc | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
+
+diff --git a/pybind11_protobuf/proto_cast_util.cc b/pybind11_protobuf/proto_cast_util.cc
+index 5ca857b..daaa400 100644
+--- a/pybind11_protobuf/proto_cast_util.cc
++++ b/pybind11_protobuf/proto_cast_util.cc
+@@ -355,13 +355,14 @@ class PythonDescriptorPoolWrapper {
+     // the Python DescriptorPool.
+ 
+     // Find a file by file name.
+-    bool FindFileByName(const std::string& filename,
++    bool FindFileByName(StringViewArg filename,
+                         FileDescriptorProto* output) override {
+       try {
+-        auto file = pool_.attr("FindFileByName")(filename);
++        auto file = pool_.attr("FindFileByName")(std::string(filename));
+         return CopyToFileDescriptorProto(file, output);
+       } catch (py::error_already_set& e) {
+-        std::cerr << "FindFileByName " << filename << " raised an error";
++        std::cerr << "FindFileByName " << std::string(filename)
++                   << " raised an error";
+ 
+         // This prints and clears the error.
+         e.restore();
+@@ -371,13 +372,13 @@ class PythonDescriptorPoolWrapper {
+     }
+ 
+     // Find the file that declares the given fully-qualified symbol name.
+-    bool FindFileContainingSymbol(const std::string& symbol_name,
++    bool FindFileContainingSymbol(StringViewArg symbol_name,
+                                   FileDescriptorProto* output) override {
+       try {
+-        auto file = pool_.attr("FindFileContainingSymbol")(symbol_name);
++        auto file = pool_.attr("FindFileContainingSymbol")(std::string(symbol_name));
+         return CopyToFileDescriptorProto(file, output);
+       } catch (py::error_already_set& e) {
+-        std::cerr << "FindFileContainingSymbol " << symbol_name
++        std::cerr << "FindFileContainingSymbol " << std::string(symbol_name)
+                    << " raised an error";
+ 
+         // This prints and clears the error.
+@@ -389,18 +390,19 @@ class PythonDescriptorPoolWrapper {
+ 
+     // Find the file which defines an extension extending the given message type
+     // with the given field number.
+-    bool FindFileContainingExtension(const std::string& containing_type,
++    bool FindFileContainingExtension(StringViewArg containing_type,
+                                      int field_number,
+                                      FileDescriptorProto* output) override {
+       try {
+-        auto descriptor = pool_.attr("FindMessageTypeByName")(containing_type);
++        auto descriptor =
++            pool_.attr("FindMessageTypeByName")(std::string(containing_type));
+         auto file =
+             pool_.attr("FindExtensionByNumber")(descriptor, field_number)
+                 .attr("file");
+         return CopyToFileDescriptorProto(file, output);
+       } catch (py::error_already_set& e) {
+-        std::cerr << "FindFileContainingExtension " << containing_type << " "
+-                   << field_number << " raised an error";
++        std::cerr << "FindFileContainingExtension " << std::string(containing_type)
++                   << " " << field_number << " raised an error";
+ 
+         // This prints and clears the error.
+         e.restore();
+-- 
+2.43.0
+

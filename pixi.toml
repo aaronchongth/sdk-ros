@@ -18,6 +18,10 @@ colcon-common-extensions = "*"
 bash = "*"
 coreutils = "*"
 grep = "*"
+# Needed by pkg-config and `git submodule` (e.g. opencensus_cpp_vendor); used
+# to be pulled in transitively by ros-jazzy-ros-gz-bridge before that was
+# removed (see the ros_gz_bridge_vendor note below) -- now explicit.
+sed = "*"
 # Libraries the *_vendor packages look for with find_package; when present the vendor build is skipped.
 libabseil = "*"
 libgrpc = "*"
@@ -34,6 +38,12 @@ libcurl = "*"
 libxml2 = "*"
 zlib = "*"
 bzip2 = "*"
+# gz_*_vendor packages look for these with find_package; when present the vendor build is skipped.
+libgz-cmake = "*"
+libgz-math = "*"
+libgz-utils = "*"
+libgz-msgs = "*"
+libgz-transport = "*"
 # Python deps of the SDK (README "Using the SDK in Python")
 grpcio = "*"
 protobuf = "*"
@@ -53,6 +63,21 @@ ros-jazzy-vision-msgs = "*"
 ros-jazzy-tf2-ros = "*"
 ros-jazzy-ros-gz-interfaces = "*"
 ros-jazzy-example-interfaces = "*"
+# ros-jazzy-ros-gz-bridge is NOT used: RoboStack jazzy's build (1.0.23) is
+# linked against Gazebo Harmonic (libgz-msgs10/libgz-transport13), not the
+# Jetty libgz-msgs(12)/libgz-transport(15) the SDK links (see F1's
+# libgz-msgs/libgz-transport pins and intrinsic_sdk_cmake/cmake/sdk.cmake).
+# Installing it would pull both library generations into the same env,
+# which aborts at runtime with "File already exists in database" once
+# something links both ros_gz_bridge and intrinsic_sdk_cmake. Instead let
+# ros_gz_bridge_vendor build from source against the conda Jetty libs (same
+# as the apt path does), and provide the ROS msg packages it needs that
+# ros-jazzy-ros-gz-bridge used to pull in transitively.
+ros-jazzy-actuator-msgs = "*"
+ros-jazzy-gps-msgs = "*"
+ros-jazzy-launch = "*"
+ros-jazzy-launch-ros = "*"
+ros-jazzy-yaml-cpp-vendor = "*"
 
 [feature.lyrical]
 channels = [{ channel = "https://prefix.dev/robostack-lyrical", priority = 1 }]
@@ -66,6 +91,8 @@ ros-lyrical-tf2-ros = "*"
 ros-lyrical-ros-gz-interfaces = "*"
 ros-lyrical-example-interfaces = "*"
 ros-lyrical-resource-retriever-interfaces = "*"
+# Satisfies ros_gz_bridge_vendor, skipping its from-source build.
+ros-lyrical-ros-gz-bridge = "*"
 
 [environments]
 jazzy = ["jazzy"]
@@ -79,3 +106,9 @@ CMAKE_GENERATOR = "Ninja"
 # conda envs contain share/*/package.xml; stop colcon from discovering them.
 colcon-ignore = "mkdir -p .pixi && touch .pixi/COLCON_IGNORE"
 check-isolation = { cmd = "bash -c 'env | grep -E \"^(AMENT_PREFIX_PATH|CMAKE_PREFIX_PATH|LD_LIBRARY_PATH)=\" | grep /opt/ros && { echo LEAK; exit 1; } || echo isolated'", clean-env = true }
+[tasks.build]
+# All cmake args live here. Callers append colcon selection args only, never another --cmake-args.
+# INTRINSIC_SDK_CMAKE_BUILD_INBUILD is unused until F3 adds it; cmake just warns.
+cmd = "colcon build --merge-install --build-base build/$PIXI_ENVIRONMENT_NAME --install-base install/$PIXI_ENVIRONMENT_NAME --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DINTRINSIC_SDK_CMAKE_BUILD_INBUILD=OFF"
+depends-on = ["colcon-ignore"]
+clean-env = true
