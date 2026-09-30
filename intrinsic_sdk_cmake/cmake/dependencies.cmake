@@ -26,6 +26,13 @@ find_package(Protobuf CONFIG REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
 find_package(gz-msgs REQUIRED)
 find_package(gz-transport REQUIRED)
+# This file also runs in downstream packages. Those with cmake_minimum_required < 3.15 (CMP0094 OLD)
+# default FindPython to the VERSION strategy, which picks the newest Python anywhere on the system
+# (e.g. host /usr over a conda/venv env) and links the wrong libpython. Search in location order instead.
+# Set before pybind11, which may call FindPython itself.
+if(NOT DEFINED Python_FIND_STRATEGY)
+  set(Python_FIND_STRATEGY LOCATION)
+endif()
 set(PYBIND11_FINDPYTHON ON)
 find_package(pybind11 CONFIG REQUIRED)
 find_package(Python COMPONENTS Development)
