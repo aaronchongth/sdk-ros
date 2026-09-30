@@ -230,11 +230,16 @@ foreach(sdk_proto ${sdk_protos})
   if(NOT _suitable_include_found)
     message(FATAL_ERROR "Error: could not find any correct proto include directory: ${_proto}")
   endif()
+  # protoc's Python generators map '-' to '_' in module paths (e.g. protoc-gen-openapiv2/ ->
+  # protoc_gen_openapiv2/), so declare the outputs where they are actually written. Ninja
+  # rejects targets that depend on undeclared files; Make happens to tolerate it.
+  string(REPLACE "-" "_" _py_rel_dir "${_rel_dir}")
+  string(REPLACE "-" "_" _py_basename "${_basename}")
   set(_proto_generated_files)
   list(APPEND _proto_generated_files
-    "${CMAKE_CURRENT_BINARY_DIR}/protos_gen_py/${_rel_dir}/${_basename}_pb2.py")
+    "${CMAKE_CURRENT_BINARY_DIR}/protos_gen_py/${_py_rel_dir}/${_py_basename}_pb2.py")
   list(APPEND _proto_generated_files
-    "${CMAKE_CURRENT_BINARY_DIR}/protos_gen_py/${_rel_dir}/${_basename}_pb2_grpc.py")
+    "${CMAKE_CURRENT_BINARY_DIR}/protos_gen_py/${_py_rel_dir}/${_py_basename}_pb2_grpc.py")
   list(APPEND protoc_generated_files ${_proto_generated_files})
   add_custom_command(
     OUTPUT ${_proto_generated_files}

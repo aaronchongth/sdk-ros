@@ -54,6 +54,31 @@ pip install -U grpcio protobuf retrying
 python3 -c 'from intrinsic.world.python.object_world_client import ObjectWorldClient'
 ```
 
+## Building with pixi (experimental)
+
+As an alternative to apt + rosdep, the workspace can be built with [pixi](https://pixi.sh), using [RoboStack](https://robostack.github.io) ROS packages and conda-forge libraries.
+This needs no ROS installed on the host, and most `*_vendor` packages are satisfied by conda-forge instead of being built from source.
+The root `pixi.toml` defines one environment per distro, `lyrical` and `jazzy`.
+It targets `linux-64` with glibc >= 2.34 (Ubuntu 22.04 or newer, Debian 12 or newer), because the SDK uses `strerrordesc_np`.
+
+```bash
+cd sdk-ros
+pixi run -e lyrical build --packages-up-to flowstate_ros_bridge  # Or: -e jazzy
+```
+
+The `build` task adds the CMake arguments itself (Release, no tests, `-DINTRINSIC_SDK_CMAKE_BUILD_INBUILD=OFF`, `-DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF`), so only pass colcon package-selection arguments.
+It builds into `build/<env>` and installs into `install/<env>` (merged install).
+It is isolated from the host: it runs with a clean environment (a sourced `/opt/ros` does not leak in), PATH is limited to the env plus `/usr/bin:/bin`, CMake searches the env first (`CMAKE_PREFIX_PATH`), and the Python user site (`~/.local`) is disabled.
+`pixi run -e lyrical check-isolation` verifies the environment side of this.
+To use the result:
+
+```bash
+pixi run --clean-env -e lyrical bash -c 'source install/lyrical/setup.bash && ros2 pkg executables flowstate_ros_bridge'
+```
+
+`-DINTRINSIC_SDK_CMAKE_BUILD_INBUILD=OFF` makes `intrinsic_sdk_cmake` download the released `inbuild` binary for the pinned SDK version instead of building it with Bazel.
+The default (`ON`) keeps the Bazel build.
+
 ## Building and packaging the flowstate_ros_bridge
 
 See [Building the flowstate_ros_bridge bundle](flowstate_ros_bridge/README.md) for more details on how to build and package the bridge.
