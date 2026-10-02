@@ -167,3 +167,8 @@ check-isolation = { cmd = "bash -c 'env | grep -E \"^(AMENT_PREFIX_PATH|CMAKE_PR
 cmd = "bash -c 'export PATH=$CONDA_PREFIX/bin:/usr/bin:/bin; IGNORE_ARGS=(); if [ -d \"$CONDA_PREFIX/share/intrinsic_sdk_cmake\" ]; then mapfile -t _pkgs < <(colcon list --names-only --packages-up-to intrinsic_sdk_cmake); IGNORE_ARGS=(--packages-ignore \"${_pkgs[@]}\"); fi; exec colcon build --merge-install --build-base build/$PIXI_ENVIRONMENT_NAME --install-base install/$PIXI_ENVIRONMENT_NAME \"${IGNORE_ARGS[@]}\" \"$@\" --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DINTRINSIC_SDK_CMAKE_BUILD_INBUILD=OFF -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF' --"
 depends-on = ["colcon-ignore"]
 clean-env = true
+[tasks.bundle-service]
+# Build and bundle a service container image using service.pixi.Dockerfile + inbuild:
+# e.g. `pixi run -e lyrical bundle-service flowstate_ros_gz_bridge`
+cmd = "bash scripts/pixi_bundle_service.sh"
+depends-on = ["colcon-ignore"]

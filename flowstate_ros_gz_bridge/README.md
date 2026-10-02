@@ -13,6 +13,14 @@ Building and sideloading the bridge is similar to how other services are install
 # Replace with your organization and cluster
 inctl asset install --org $INTRINSIC_ORGANIZATION --cluster $INTRINSIC_CONTEXT images/flowstate_ros_gz_bridge_service.bundle.tar
 ```
+
+Alternatively, to build and bundle using `pixi` and the prebuilt SDK bundle (`service.pixi.Dockerfile`) from the `sdk-ros` directory:
+
+```bash
+cd src/sdk-ros
+pixi run -e lyrical bundle-service flowstate_ros_gz_bridge  # Or: -e jazzy
+inctl service install --org $INTRINSIC_ORGANIZATION --cluster $INTRINSIC_CONTEXT intrinsic_asset_bundles/flowstate_ros_gz_bridge_service/flowstate_ros_gz_bridge_service.bundle.tar
+```
 ### Instantiate the service
 
 From the flowstate UI, add the service to your solution. Its default config bridges the `/clock` topic for simulated clock.

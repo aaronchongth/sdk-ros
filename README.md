@@ -94,6 +94,18 @@ pixi run --clean-env -e lyrical bash -c 'source install/lyrical/setup.bash && ro
 `-DINTRINSIC_SDK_CMAKE_BUILD_INBUILD=OFF` makes `intrinsic_sdk_cmake` download the released `inbuild` binary for the pinned SDK version instead of building it with Bazel.
 The default (`ON`) keeps the Bazel build.
 
+### Bundling a service container for Flowstate (`bundle-service`)
+
+To build a service container image using [`service.pixi.Dockerfile`](intrinsic_sdk_bundle_library_py/resource/service.pixi.Dockerfile) (which downloads the prebuilt `.conda` bundle inside Docker and compiles only the target service package) and package it into a Flowstate `.bundle.tar` with `inbuild`:
+
+```bash
+cd sdk-ros
+pixi run -e lyrical bundle-service flowstate_ros_bridge     # Or: -e jazzy
+pixi run -e lyrical bundle-service flowstate_ros_gz_bridge  # Or: -e jazzy
+```
+
+This writes `./intrinsic_asset_bundles/<service_name>/<service_name>.bundle.tar`.
+
 ### Building and hosting the `.conda` SDK bundle
 
 The `packaging` environment uses `rattler-build` (`packaging/recipe.yaml` and `packaging/build_bundle.sh`) to build `ros-lyrical-intrinsic-sdk-cmake-bundle` and `ros-jazzy-intrinsic-sdk-cmake-bundle` into `/opt/sdk-ros-pixi/channel/linux-64/`:

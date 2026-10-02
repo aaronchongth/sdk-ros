@@ -1,0 +1,12 @@
+images
+intrinsic_asset_bundles
+build
+**/build
+log
+**/log
+install
+**/install
+.pixi
+**/.pixi
+.git
+**/.git

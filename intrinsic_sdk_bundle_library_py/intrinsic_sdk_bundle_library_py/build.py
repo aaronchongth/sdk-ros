@@ -222,7 +222,10 @@ def build_container(args):
         print(f'Creating {dockerignore_path}...')
         try:
             with open(dockerignore_path, 'w') as f:
-                f.write('images\nbuild\nlog\ninstall\n')
+                f.write(
+                    'images\nintrinsic_asset_bundles\nbuild\n**/build\n'
+                    'log\n**/log\ninstall\n**/install\n.pixi\n**/.pixi\n'
+                )
         except Exception as e:
             print(f'Warning: Could not create {dockerignore_path}: {e}')
 
@@ -333,6 +336,7 @@ def build_bundle(args):
     if args.service_name:
         paths_to_try = [
             f'/opt/ros/overlay/install/share/{package}/{name}_protos.desc',
+            f'/opt/ros/overlay/install/share/{package}/{name}/{name}_protos.desc',
             f'/opt/ros/overlay/install/share/{name}/{name}_protos.desc'
         ]
         success = False
