@@ -1,0 +1,137 @@
+context:
+  sdk_version: "1.36.20260831"
+  ros_distro: ${{ env.get("ROS_DISTRO", default="lyrical") }}
+
+package:
+  name: ros-${{ ros_distro }}-intrinsic-sdk-cmake-bundle
+  version: ${{ sdk_version }}
+
+source:
+  path: ..
+  use_gitignore: true
+
+build:
+  number: 0
+  script:
+    file: build_bundle.sh
+    env:
+      ROS_DISTRO: ${{ ros_distro }}
+      CCACHE_DIR: ${{ env.get("CCACHE_DIR", default="/opt/sdk-ros-pixi/ccache") }}
+
+requirements:
+  host:
+    # Toolchain & build tools
+    - c-compiler
+    - cxx-compiler
+    - binutils
+    - sysroot_linux-64 2.34.*
+    - python
+    - cmake
+    - ninja
+    - make
+    - pkg-config
+    - git
+    - colcon-common-extensions
+    - ccache
+    - patchelf
+    - bash
+    - coreutils
+    - grep
+    - sed
+    - patch
+    # C++ libraries that satisfy *_vendor packages or link into intrinsic_sdk_cmake
+    - assimp
+    - libabseil
+    - brotli
+    - libgrpc
+    - libprotobuf
+    - re2
+    - eigen
+    - flatbuffers
+    - prometheus-cpp
+    - pybind11
+    - snappy >=1.2.0
+    - tbb-devel
+    - nlohmann_json
+    - zeromq
+    - cppzmq
+    - libcurl
+    - libxml2
+    - libzip
+    - zlib
+    - zstd
+    - bzip2
+    - libzenohcxx
+    - libgz-cmake
+    - libgz-math
+    - libgz-utils
+    - libgz-msgs
+    - libgz-transport
+    - libsdformat >=16.0.0
+    # Python & ROS dependencies
+    - grpcio
+    - grpcio-status
+    - grpcio-tools
+    - protobuf
+    - retrying
+    - pyyaml
+    - absl-py
+    - ros-${{ ros_distro }}-ros-base
+    - ros-${{ ros_distro }}-ament-cmake-vendor-package
+    - ros-${{ ros_distro }}-rmw-zenoh-cpp
+  run:
+    - libgcc
+    - libstdcxx
+    - python
+    - pkg-config
+    - assimp
+    - libabseil
+    - brotli
+    - libgrpc
+    - libprotobuf
+    - re2
+    - eigen
+    - flatbuffers
+    - prometheus-cpp
+    - pybind11
+    - snappy >=1.2.0
+    - tbb-devel
+    - nlohmann_json
+    - zeromq
+    - cppzmq
+    - libcurl
+    - libxml2
+    - libzip
+    - zlib
+    - zstd
+    - bzip2
+    - libzenohcxx
+    - libgz-cmake
+    - libgz-math
+    - libgz-utils
+    - libgz-msgs
+    - libgz-transport
+    - libsdformat >=16.0.0
+    - grpcio
+    - grpcio-status
+    - grpcio-tools
+    - protobuf
+    - retrying
+    - pyyaml
+    - absl-py
+    - ros-${{ ros_distro }}-ros-base
+    - ros-${{ ros_distro }}-ament-cmake-vendor-package
+    - ros-${{ ros_distro }}-rmw-zenoh-cpp
+
+tests:
+  - script:
+      - test -f "$PREFIX/lib/libintrinsic_sdk_cmake.so"
+      - test -f "$PREFIX/share/intrinsic_sdk_cmake/intrinsic_proto.desc"
+      - test -x "$PREFIX/bin/inbuild"
+      - python -c "from intrinsic.world.python.object_world_client import ObjectWorldClient; import intrinsic.platform.pubsub.python.pubsub"
+
+about:
+  summary: Prebuilt bundle of intrinsic_sdk_cmake, intrinsic_sdk_bundle_library_py, and sdk-ros vendor packages
+  license: Apache-2.0
+  license_file: LICENSE
+  repository: https://github.com/aaronchongth/sdk-ros

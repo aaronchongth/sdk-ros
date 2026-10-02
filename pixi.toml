@@ -1,0 +1,169 @@
+[workspace]
+name = "sdk-ros"
+channels = ["conda-forge"]
+# glibc 2.34: the Intrinsic SDK (patch 003_icon_strerror_glibc2_39) calls strerrordesc_np, which needs
+# glibc >= 2.32; conda-forge's default sysroot is 2.28. 2.34 is the oldest conda-forge sysroot that has it.
+platforms = [{ name = "linux-64-glibc234", platform = "linux-64", glibc = "2.34" }]
+requires-pixi = ">=0.81"
+
+[dependencies]
+# Toolchain
+c-compiler = "*"
+cxx-compiler = "*"
+# c-compiler/cxx-compiler 2.x install unprefixed gcc/g++ but only prefixed binutils (x86_64-conda-linux-gnu-ar).
+# CMake looks for plain `ar`/`ld`/`ranlib` next to the compiler or on PATH; without this it silently used
+# the host's /usr/bin ones, or failed with an env-only PATH.
+binutils = "*"
+# Compile against glibc >= 2.34 headers (see platforms above).
+sysroot_linux-64 = ">=2.34"
+cmake = "*"
+ninja = "*"
+make = "*"
+pkg-config = "*"
+git = "*"
+colcon-common-extensions = "*"
+# PATH under clean-env: the CLI flag (`pixi run --clean-env`) leaves only the env on PATH, but a task with
+# `clean-env = true` still inherits the host PATH, so the `build` task sets PATH itself (see [tasks.build]).
+# Either way, the tools the build needs must come from the env, not the host.
+bash = "*"
+coreutils = "*"
+grep = "*"
+# Needed by pkg-config and `git submodule` (e.g. opencensus_cpp_vendor); used
+# to be pulled in transitively by ros-jazzy-ros-gz-bridge before that was
+# removed (see the ros_gz_bridge_vendor note below) -- now explicit.
+sed = "*"
+# Applies the SDK patches (intrinsic_sdk_cmake/cmake/sdk_patches) and vendor patches; slim images lack it.
+patch = "*"
+# Libraries the *_vendor packages look for with find_package / pkg-config; when present the vendor build is skipped.
+assimp = "*"
+libabseil = "*"
+brotli = "*"
+libgrpc = "*"
+libprotobuf = "*"
+re2 = "*"
+eigen = "*"
+flatbuffers = "*"
+prometheus-cpp = "*"
+pybind11 = "*"
+snappy = ">=1.2.0"
+tbb-devel = "*"
+nlohmann_json = "*"
+zeromq = "*"
+cppzmq = "*"
+libcurl = "*"
+libxml2 = "*"
+libzip = "*"
+zlib = "*"
+zstd = "*"
+bzip2 = "*"
+# RoboStack's ros-<distro>-zenoh-cpp-vendor exports a find_package(zenohcxx) dependency but does not depend on a
+# package providing it. The solver picks the libzenohcxx matching RoboStack's libzenohc pin.
+libzenohcxx = "*"
+# gz_*_vendor packages look for these with find_package; when present the vendor build is skipped.
+libgz-cmake = "*"
+libgz-math = "*"
+libgz-utils = "*"
+libgz-msgs = "*"
+libgz-transport = "*"
+libsdformat = ">=16.0.0"
+# Python deps of the SDK (README "Using the SDK in Python")
+grpcio = "*"
+# SDK Python clients (e.g. intrinsic.world.python) import grpc_status.
+grpcio-status = "*"
+# intrinsic_sdk_cmake generates Python protos with grpc_tools.protoc; without it, it pip-installs
+# grpcio-tools==1.75.1 (older bundled protoc than the env's libprotobuf) into a venv at configure time.
+grpcio-tools = "*"
+protobuf = "*"
+retrying = "*"
+pyyaml = "*"
+absl-py = "*"
+pytest = "*"
+
+[feature.jazzy]
+channels = [{ channel = "https://prefix.dev/robostack-jazzy", priority = 1 }]
+[feature.jazzy.dependencies]
+ros-jazzy-ros-base = "*"
+ros-jazzy-ament-cmake-vendor-package = "*"
+ros-jazzy-rmw-zenoh-cpp = "*"
+ros-jazzy-common-interfaces = "*"
+ros-jazzy-vision-msgs = "*"
+ros-jazzy-tf2-ros = "*"
+ros-jazzy-ros-gz-interfaces = "*"
+ros-jazzy-example-interfaces = "*"
+# ros-jazzy-ros-gz-bridge is NOT used: RoboStack jazzy's build (1.0.23) is
+# linked against Gazebo Harmonic (libgz-msgs10/libgz-transport13), not the
+# Jetty libgz-msgs(12)/libgz-transport(15) the SDK links (see F1's
+# libgz-msgs/libgz-transport pins and intrinsic_sdk_cmake/cmake/sdk.cmake).
+# Installing it would pull both library generations into the same env,
+# which aborts at runtime with "File already exists in database" once
+# something links both ros_gz_bridge and intrinsic_sdk_cmake. Instead let
+# ros_gz_bridge_vendor build from source against the conda Jetty libs (same
+# as the apt path does), and provide the ROS msg packages it needs that
+# ros-jazzy-ros-gz-bridge used to pull in transitively.
+ros-jazzy-actuator-msgs = "*"
+ros-jazzy-gps-msgs = "*"
+ros-jazzy-launch = "*"
+ros-jazzy-launch-ros = "*"
+ros-jazzy-yaml-cpp-vendor = "*"
+
+[feature.lyrical]
+channels = [{ channel = "https://prefix.dev/robostack-lyrical", priority = 1 }]
+[feature.lyrical.dependencies]
+ros-lyrical-ros-base = "*"
+ros-lyrical-ament-cmake-vendor-package = "*"
+ros-lyrical-rmw-zenoh-cpp = "*"
+ros-lyrical-common-interfaces = "*"
+ros-lyrical-vision-msgs = "*"
+ros-lyrical-tf2-ros = "*"
+ros-lyrical-ros-gz-interfaces = "*"
+ros-lyrical-example-interfaces = "*"
+ros-lyrical-resource-retriever-interfaces = "*"
+# Satisfies ros_gz_bridge_vendor, skipping its from-source build.
+ros-lyrical-ros-gz-bridge = "*"
+
+[feature.jazzy-bundle.dependencies]
+ros-jazzy-intrinsic-sdk-cmake-bundle = { url = "https://github.com/aaronchongth/sdk-ros/releases/download/sdk-v1.36.20260831/ros-jazzy-intrinsic-sdk-cmake-bundle-1.36.20260831-hb0f4dca_0.conda" }
+
+[feature.lyrical-bundle.dependencies]
+ros-lyrical-intrinsic-sdk-cmake-bundle = { url = "https://github.com/aaronchongth/sdk-ros/releases/download/sdk-v1.36.20260831/ros-lyrical-intrinsic-sdk-cmake-bundle-1.36.20260831-hb0f4dca_0.conda" }
+
+[feature.packaging.dependencies]
+rattler-build = "*"
+
+[feature.packaging.tasks]
+build-bundle-lyrical = "ROS_DISTRO=lyrical rattler-build build --no-build-id --recipe packaging/recipe.yaml -c https://prefix.dev/robostack-lyrical -c conda-forge --output-dir /opt/sdk-ros-pixi/channel"
+build-bundle-jazzy = "ROS_DISTRO=jazzy rattler-build build --no-build-id --recipe packaging/recipe.yaml -c https://prefix.dev/robostack-jazzy -c conda-forge --output-dir /opt/sdk-ros-pixi/channel"
+
+[environments]
+jazzy = ["jazzy", "jazzy-bundle"]
+jazzy-src = ["jazzy"]
+lyrical = ["lyrical", "lyrical-bundle"]
+lyrical-src = ["lyrical"]
+packaging = { features = ["packaging"], no-default-feature = true }
+
+[activation.env]
+# Set the generator via env rather than --cmake-args: a second --cmake-args on the command line replaces the first.
+CMAKE_GENERATOR = "Ninja"
+# Without this the env is only found via CMake's system prefixes, which find_package searches *after* prefixes
+# derived from PATH entries (~/.local, ~/.cargo, /usr/local, ...), so host installs could shadow or silently fill
+# in for env packages (e.g. a ~/.local zenohcxx satisfied RoboStack's zenoh_cpp_vendor).
+CMAKE_PREFIX_PATH = "$CONDA_PREFIX:$CMAKE_PREFIX_PATH"
+# clean-env keeps HOME; stop ~/.local/lib/pythonX.Y/site-packages (user pip installs, host colcon extensions)
+# from shadowing env packages, at build time and at runtime.
+PYTHONNOUSERSITE = "1"
+
+[tasks]
+# conda envs contain share/*/package.xml; stop colcon from discovering them.
+colcon-ignore = "mkdir -p .pixi && touch .pixi/COLCON_IGNORE"
+# Fails if host ROS leaks into the env vars, CMake would not search the env first, or the Python user site is active.
+check-isolation = { cmd = "bash -c 'env | grep -E \"^(AMENT_PREFIX_PATH|CMAKE_PREFIX_PATH|LD_LIBRARY_PATH)=\" | grep /opt/ros && { echo LEAK: host ROS; exit 1; }; case \"$CMAKE_PREFIX_PATH\" in \"$CONDA_PREFIX\"*) ;; *) echo LEAK: CMAKE_PREFIX_PATH; exit 1 ;; esac; python -c \"import site, sys; sys.exit(site.ENABLE_USER_SITE)\" || { echo LEAK: python user site; exit 1; }; echo isolated'", clean-env = true }
+[tasks.build]
+# All cmake args live here. Callers append colcon selection args only, never another --cmake-args.
+# When ros-<distro>-intrinsic-sdk-cmake-bundle is installed in $CONDA_PREFIX, ignore the 25 packages
+# up to intrinsic_sdk_cmake in the source tree so colcon uses the prebuilt underlay without warnings.
+# Task clean-env still inherits the host PATH (~/.local/bin, ~/.cargo/bin, /usr/lib/ccache, ...), whose prefixes
+# CMake's find_package also searches. Keep only the env plus /usr/bin:/bin for `sh` (fetch_sdk.cmake's
+# PATCH_COMMAND; the env has no sh). CMAKE_FIND_USE_PACKAGE_REGISTRY=OFF ignores ~/.cmake/packages.
+cmd = "bash -c 'export PATH=$CONDA_PREFIX/bin:/usr/bin:/bin; IGNORE_ARGS=(); if [ -d \"$CONDA_PREFIX/share/intrinsic_sdk_cmake\" ]; then mapfile -t _pkgs < <(colcon list --names-only --packages-up-to intrinsic_sdk_cmake); IGNORE_ARGS=(--packages-ignore \"${_pkgs[@]}\"); fi; exec colcon build --merge-install --build-base build/$PIXI_ENVIRONMENT_NAME --install-base install/$PIXI_ENVIRONMENT_NAME \"${IGNORE_ARGS[@]}\" \"$@\" --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DINTRINSIC_SDK_CMAKE_BUILD_INBUILD=OFF -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF' --"
+depends-on = ["colcon-ignore"]
+clean-env = true

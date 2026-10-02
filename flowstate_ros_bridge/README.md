@@ -20,6 +20,8 @@ colcon build \
   --packages-up-to flowstate_ros_bridge
 ```
 
+Alternatively, build without a ROS installation using pixi; see [Building with pixi](../README.md#building-with-pixi-experimental).
+
 ### Testing the flowstate_ros_bridge (over local LAN)
 
 Start a zenoh router to connect to the in-cluster router of the Flowstate IPC.
