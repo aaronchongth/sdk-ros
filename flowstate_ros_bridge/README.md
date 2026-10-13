@@ -20,6 +20,8 @@ colcon build \
   --packages-up-to flowstate_ros_bridge
 ```
 
+Alternatively, build without a ROS installation using pixi; see [Building with pixi](../README.md#building-with-pixi-experimental).
+
 ### Testing the flowstate_ros_bridge (over local LAN)
 
 Start a zenoh router to connect to the in-cluster router of the Flowstate IPC.
@@ -69,6 +71,15 @@ Then, create the bundle with the `build_service_bundle.sh` script. This will com
 > Replace `lyrical` with `jazzy` if targeting ROS 2 Jazzy.
 
 The output of this command will be a tarball inside the `images` directory of the colcon workspace which can be pushed to Flowstate as a new service.
+
+Alternatively, to build and bundle much faster using `pixi` and the prebuilt SDK bundle (`service.pixi.Dockerfile`):
+
+```bash
+cd src/sdk-ros
+pixi run -e lyrical bundle-service flowstate_ros_bridge  # Or: -e jazzy
+```
+
+which outputs `intrinsic_asset_bundles/flowstate_ros_bridge/flowstate_ros_bridge.bundle.tar`.
 
 ### Sideloading the flowstate_ros_bridge to a running Flowstate solution
 

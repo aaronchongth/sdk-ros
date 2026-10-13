@@ -1,0 +1,47 @@
+diff --git a/ortools/base/source_location.h b/ortools/base/source_location.h
+index d6c6c23..37ea699 100644
+--- a/ortools/base/source_location.h
++++ b/ortools/base/source_location.h
+@@ -32,6 +32,14 @@
+ 
+ #include "absl/base/config.h"
+ 
++#if __has_include("absl/types/source_location.h")
++// Newer abseil releases (e.g. conda-forge's libabseil) ship their own
++// absl::SourceLocation. Use it instead of defining another one below: two
++// classes named absl::SourceLocation in the same translation unit make every
++// use of the type ambiguous.
++#include "absl/types/source_location.h"
++#else
++
+ namespace absl {
+ 
+ // Class representing a specific location in the source code of a program.
+@@ -118,8 +126,11 @@ class SourceLocation {
+ }  // namespace absl
+ 
+ // If a function takes an `absl::SourceLocation` parameter, pass this as the
+-// argument.
++// argument. Not used anywhere in or-tools v9.15 itself; kept only for source
++// compatibility with code built against this shim.
++#ifndef ABSL_LOC
+ #define ABSL_LOC ::absl::SourceLocation::DoNotInvokeDirectly(__LINE__, __FILE__)
++#endif
+ 
+ // ABSL_LOC_CURRENT_DEFAULT_ARG
+ //
+@@ -134,10 +145,14 @@ class SourceLocation {
+ //     std::cout << loc.file_name() << "@" << loc.line() << ": " << msg;
+ //   }
+ //
++#ifndef ABSL_LOC_CURRENT_DEFAULT_ARG
+ #if ABSL_HAVE_SOURCE_LOCATION_CURRENT
+ #define ABSL_LOC_CURRENT_DEFAULT_ARG = ::absl::SourceLocation::current()
+ #else
+ #define ABSL_LOC_CURRENT_DEFAULT_ARG
+ #endif
++#endif  // ABSL_LOC_CURRENT_DEFAULT_ARG
++
++#endif  // __has_include("absl/types/source_location.h")
+ 
+ #endif  // ORTOOLS_BASE_SOURCE_LOCATION_H_

@@ -2,6 +2,8 @@
 __pycache__/
 build/
 install/
+intrinsic_asset_bundles/
 log/
 *.egg-info/
 .eggs/
+.pixi/

@@ -1,0 +1,41 @@
+diff -ru a/intrinsic/icon/release/grpc_time_support.cc b/intrinsic/icon/release/grpc_time_support.cc
+--- a/intrinsic/icon/release/grpc_time_support.cc	2026-09-30 11:26:02.177406445 +0800
++++ b/intrinsic/icon/release/grpc_time_support.cc	2026-09-30 11:26:17.099388806 +0800
+@@ -10,6 +10,8 @@
+ #include "grpc/support/time.h"
+ #include "grpcpp/support/time.h"
+ 
++#ifdef INTRINSIC_ICON_RELEASE_GRPC_TIME_SUPPORT_NEEDED
++
+ namespace grpc {
+ 
+ gpr_timespec TimePoint<absl::Time>::TimeToGprTimespec(absl::Time time) {
+@@ -95,3 +97,5 @@
+ }
+ 
+ }  // namespace grpc
++
++#endif  // INTRINSIC_ICON_RELEASE_GRPC_TIME_SUPPORT_NEEDED
+diff -ru a/intrinsic/icon/release/grpc_time_support.h b/intrinsic/icon/release/grpc_time_support.h
+--- a/intrinsic/icon/release/grpc_time_support.h	2026-09-30 11:26:02.178989045 +0800
++++ b/intrinsic/icon/release/grpc_time_support.h	2026-09-30 11:51:51.690598386 +0800
+@@ -7,6 +7,12 @@
+ #include "grpc/support/log.h"
+ #include "grpc/support/time.h"
+ #include "grpcpp/support/time.h"
++#include "grpcpp/version_info.h"
++
++// gRPC >= 1.81 provides TimePoint<absl::Time> and the conversion functions below
++// in grpcpp/support/time.h (defined in libgrpc++), so only declare them for older gRPC.
++#if GRPC_CPP_VERSION_MAJOR == 1 && GRPC_CPP_VERSION_MINOR < 81
++#define INTRINSIC_ICON_RELEASE_GRPC_TIME_SUPPORT_NEEDED 1
+ 
+ namespace grpc {
+ 
+@@ -41,4 +47,6 @@
+ 
+ }  // namespace grpc
+ 
++#endif  // GRPC_CPP_VERSION < 1.81
++
+ #endif  // INTRINSIC_ICON_RELEASE_GRPC_TIME_SUPPORT_H_
