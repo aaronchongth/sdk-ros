@@ -99,6 +99,18 @@ To use the result:
 pixi run --clean-env -e lyrical bash -c 'source install/lyrical/setup.bash && ros2 pkg executables flowstate_ros_bridge'
 ```
 
+### Bundling a service container for Flowstate (`bundle-service`)
+
+To build a service container image using [`service.pixi.Dockerfile`](intrinsic_sdk_bundle_library_py/resource/service.pixi.Dockerfile) (which downloads the prebuilt `.conda` bundle inside Docker and compiles only the target service package) and package it into a Flowstate `.bundle.tar` with `inbuild`:
+
+```bash
+cd sdk-ros
+pixi run -e lyrical bundle-service flowstate_ros_bridge     # Or: -e jazzy
+pixi run -e lyrical bundle-service flowstate_ros_gz_bridge  # Or: -e jazzy
+```
+
+This writes `./intrinsic_asset_bundles/<service_name>/<service_name>.bundle.tar`.
+
 ### Rebuilding and hosting the `.conda` SDK bundle
 
 Whenever the pinned SDK version or `intrinsic_sdk_cmake` / `*_vendor` packages change, rebuild the prebuilt `.conda` bundles using the `packaging` environment (`rattler-build` with [`packaging/recipe.yaml`](packaging/recipe.yaml) and [`packaging/build_bundle.sh`](packaging/build_bundle.sh)):
